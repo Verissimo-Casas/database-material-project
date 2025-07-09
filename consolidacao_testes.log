@@ -1,0 +1,77 @@
+=== CONSOLIDAÇÃO DOS RESULTADOS DE TESTE ===
+Data: Tue 08 Jul 2025 09:58:16 AM -04
+
+--- TESTES AUTOMATIZADOS BÁSICOS ---
+
+[2025-07-08 09:46:44] === INÍCIO DOS TESTES FUNCIONAIS ===
+[2025-07-08 09:46:44] --- FASE 1: TESTES DE AUTENTICAÇÃO ---
+[2025-07-08 09:46:44] TC-001: PASSOU - Login administrador redirecionou corretamente
+[2025-07-08 09:46:44] TC-002: PASSOU - Login instrutor redirecionou corretamente
+[2025-07-08 09:46:44] TC-003: PASSOU - Login aluno redirecionou corretamente
+[2025-07-08 09:46:44] TC-004: PASSOU - Login inválido rejeitado corretamente
+[2025-07-08 09:46:44] --- RESUMO FASE 1 ---
+[2025-07-08 09:46:44] Testes executados: 4
+[2025-07-08 09:46:44] Testes aprovados: 4
+[2025-07-08 09:46:44] Taxa de sucesso: 100%
+[2025-07-08 09:46:44] --- FASE 2: TESTES DE ACESSO AOS MÓDULOS ---
+[2025-07-08 09:46:44] SETUP: PASSOU - Login administrador redirecionou corretamente
+[2025-07-08 09:46:44] TC-006: PASSOU - Módulo matricula acessível
+[2025-07-08 09:46:44] TC-009: PASSOU - Módulo boleto acessível
+[2025-07-08 09:46:44] TC-012: PASSOU - Dashboard administrador acessível
+[2025-07-08 09:46:44] --- RESUMO FASE 2 ---
+[2025-07-08 09:46:44] Testes executados: 3
+[2025-07-08 09:46:44] Testes aprovados: 3
+[2025-07-08 09:46:44] Taxa de sucesso: 100%
+[2025-07-08 09:46:44] --- FASE 3: TESTES DE API ---
+[2025-07-08 09:46:44] API-001: PASSOU - API de login funcionando
+[2025-07-08 09:46:44] API-002: PASSOU - API rejeitou login inválido
+[2025-07-08 09:46:44] --- RESUMO FASE 3 ---
+[2025-07-08 09:46:44] Testes executados: 2
+[2025-07-08 09:46:44] Testes aprovados: 2
+[2025-07-08 09:46:44] Taxa de sucesso: 100%
+[2025-07-08 09:46:45] === RESUMO GERAL DOS TESTES ===
+[2025-07-08 09:46:45] Total de testes executados: 9
+[2025-07-08 09:46:45] Total de testes aprovados: 9
+[2025-07-08 09:46:45] Taxa de sucesso geral: 100%
+[2025-07-08 09:46:45] STATUS: APROVADO - Sistema em condições adequadas
+[2025-07-08 09:46:45] === FIM DOS TESTES ===
+
+--- TESTES DE REGRAS DE NEGÓCIO ---
+
+[2025-07-08 09:54:39] === INÍCIO DOS TESTES DE REGRAS DE NEGÓCIO ===
+[2025-07-08 09:54:39] --- RN-1: MATRÍCULA OBRIGATÓRIA ---
+[2025-07-08 09:54:39] RN-001: Aluno sem matrícula: PASSOU - Login corretamente negado
+[2025-07-08 09:54:39] --- RN-2: BLOQUEIO POR MENSALIDADE VENCIDA ---
+[2025-07-08 09:54:39] RN-002a: Bloqueio por boleto vencido: PASSOU - Login corretamente bloqueado
+[2025-07-08 09:54:40] RN-002b: Bloqueio por matrícula vencida: FALHOU - Login deveria ter sido bloqueado
+[2025-07-08 09:54:40] --- RN-4: PERMISSÕES DE EDIÇÃO ---
+[2025-07-08 09:54:40] RN-004a: PASSOU - Aluno não pode editar treinos
+[2025-07-08 09:54:40] RN-004b: PASSOU - Instrutor pode acessar área de treinos
+[2025-07-08 09:54:40] --- TESTES DE SEGURANÇA ---
+[2025-07-08 09:54:40] SEC-001: FALHOU - Encontradas 1 senhas em texto plano
+[2025-07-08 09:54:40] SEC-002: PASSOU - Sistema protegido contra SQL Injection básico
+[2025-07-08 09:54:40] === RESUMO DOS TESTES DE REGRAS DE NEGÓCIO ===
+[2025-07-08 09:54:40] Total de testes: 7
+[2025-07-08 09:54:40] Testes aprovados: 5
+[2025-07-08 09:54:40] Taxa de sucesso: 71%
+[2025-07-08 09:54:40] STATUS: REPROVADO - Regras de negócio precisam de correções
+[2025-07-08 09:54:41] === FIM DOS TESTES ===
+
+--- TESTES DE RESPONSIVIDADE ---
+
+[2025-07-08 09:55:26] === TESTES DE RESPONSIVIDADE E UI ===
+[2025-07-08 09:55:26] --- TESTANDO CARREGAMENTO DE PÁGINAS ---
+[2025-07-08 09:55:26] NFT-001: PASSOU - Página / carrega e contém elementos responsivos
+[2025-07-08 09:55:26] NFT-002: PASSOU - Página /dashboard carrega e contém elementos responsivos
+[2025-07-08 09:55:26] NFT-003: PASSOU - Página /matricula carrega e contém elementos responsivos
+[2025-07-08 09:55:26] NFT-004: PASSOU - Página /boleto carrega e contém elementos responsivos
+[2025-07-08 09:55:26] NFT-005: PASSOU - Página /auth/login carrega e contém elementos responsivos
+[2025-07-08 09:55:26] NFT-006: PASSOU - CSS contém regras responsivas
+[2025-07-08 09:55:26] NFT-007: PASSOU - Meta viewport configurado
+[2025-07-08 09:55:26] NFT-008: INDETERMINADO - Elementos de acessibilidade limitados
+[2025-07-08 09:55:26] === RESUMO DOS TESTES DE RESPONSIVIDADE ===
+[2025-07-08 09:55:26] Total de testes: 8
+[2025-07-08 09:55:26] Testes aprovados: 7
+[2025-07-08 09:55:26] Taxa de sucesso: 87%
+[2025-07-08 09:55:26] STATUS: APROVADO - Interface responsiva adequada
+[2025-07-08 09:55:26] === FIM DOS TESTES DE RESPONSIVIDADE ===

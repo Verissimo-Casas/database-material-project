@@ -1,3 +1,5 @@
+TESTE COMMIT!
+
 # Sistema de Gestão de Academia (SGF)
 
 Sistema completo para gestão de academias desenvolvido em PHP com arquitetura MVC e Docker.

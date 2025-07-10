@@ -25,8 +25,23 @@ class RelatorioController {
     public function frequencia() {
         // Verificar permissões
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] === 'aluno') {
+            $title = 'Acesso Negado - Sistema Academia';
+            ob_start();
+            ?>
+            <div class="container-fluid">
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h4>Acesso Negado</h4>
+                    <p>Você não tem permissão para acessar esta página.</p>
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+            <?php
+            $content = ob_get_clean();
             http_response_code(403);
-            echo "Acesso negado.";
+            require_once BASE_PATH . '/app/views/layout.php';
             return;
         }
         
@@ -63,6 +78,13 @@ class RelatorioController {
             $total_alunos = 0;
             $total_aulas = 0;
         }
+        
+        // Ensure all variables are defined
+        $relatorio_frequencia = $relatorio_frequencia ?? [];
+        $total_alunos = $total_alunos ?? 0;
+        $total_aulas = $total_aulas ?? 0;
+        $periodo_inicio = $periodo_inicio ?? date('Y-m-01');
+        $periodo_fim = $periodo_fim ?? date('Y-m-t');
         
         require_once BASE_PATH . '/app/views/relatorio/frequencia.php';
     }
@@ -162,15 +184,14 @@ class RelatorioController {
                     $stmt_freq->execute();
                     $frequencias = $stmt_freq->fetchAll(PDO::FETCH_ASSOC);
                     
-                    // Planos de treino
+                    // Planos de treino - simplified query since segue table doesn't exist
                     $query_planos = "SELECT pt.Descricao, i.L_Nome as instrutor_nome
                                     FROM plano_treino pt
-                                    INNER JOIN segue s ON pt.ID_Plano = s.ID_Plano
                                     LEFT JOIN monta m ON pt.ID_Plano = m.ID_Plano
                                     LEFT JOIN instrutor i ON m.CREF_j = i.CREF
-                                    WHERE s.AL_CPF = :cpf";
+                                    ORDER BY pt.ID_Plano DESC
+                                    LIMIT 5";
                     $stmt_planos = $db->prepare($query_planos);
-                    $stmt_planos->bindParam(':cpf', $cpf_aluno);
                     $stmt_planos->execute();
                     $planos = $stmt_planos->fetchAll(PDO::FETCH_ASSOC);
                     
@@ -269,8 +290,23 @@ class RelatorioController {
         
         // Apenas admins e instrutores podem criar relatórios
         if ($_SESSION['user_type'] === 'aluno') {
+            $title = 'Acesso Negado - Sistema Academia';
+            ob_start();
+            ?>
+            <div class="container-fluid">
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h4>Acesso Negado</h4>
+                    <p>Apenas administradores e instrutores podem criar relatórios.</p>
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+            <?php
+            $content = ob_get_clean();
             http_response_code(403);
-            echo "Acesso negado. Apenas administradores e instrutores podem criar relatórios.";
+            require_once BASE_PATH . '/app/views/layout.php';
             return;
         }
 
@@ -300,10 +336,9 @@ class RelatorioController {
                 case 'alunos_ativos':
                     $titulo_relatorio = 'Relatório de Alunos Ativos';
                     $query = "SELECT a.AL_Nome, a.AL_Email, a.AL_Num_Contato, 
-                                    m.M_Dt_Inicio, p.P_Nome as plano_nome
+                                    m.Dt_Inicio, 'Plano Padrão' as plano_nome
                              FROM aluno a
                              INNER JOIN matricula m ON a.ID_Matricula = m.ID_Matricula
-                             INNER JOIN plano p ON m.ID_Plano = p.ID_Plano
                              WHERE m.M_Status = 1
                              ORDER BY a.AL_Nome";
                     break;
@@ -367,6 +402,174 @@ class RelatorioController {
             $_SESSION['error'] = "Erro ao gerar relatório: " . $e->getMessage();
             redirect('relatorio/create');
         }
+    }
+    
+    public function alunos() {
+        // Verificar permissões
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] === 'aluno') {
+            http_response_code(403);
+            echo "Acesso negado.";
+            return;
+        }
+        
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            // Buscar dados dos alunos
+            $query = "SELECT a.CPF, a.AL_Nome, a.AL_Email, a.AL_Num_Contato, a.AL_Dt_Nasc,
+                            m.ID_Matricula, m.M_Status, m.Dt_Inicio as Data_Matricula,
+                            COUNT(DISTINCT b.ID_Pagamento) as total_boletos,
+                            COUNT(DISTINCT CASE WHEN b.Dt_Pagamento IS NOT NULL THEN b.ID_Pagamento END) as boletos_pagos
+                     FROM aluno a
+                     LEFT JOIN matricula m ON a.ID_Matricula = m.ID_Matricula
+                     LEFT JOIN boleto b ON m.ID_Matricula = b.ID_Matricula
+                     GROUP BY a.CPF, a.AL_Nome, a.AL_Email, m.ID_Matricula
+                     ORDER BY a.AL_Nome ASC";
+            
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $alunos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Estatísticas gerais
+            $total_alunos = count($alunos);
+            $alunos_ativos = array_filter($alunos, function($a) { return $a['M_Status'] == 1; });
+            $total_ativos = count($alunos_ativos);
+            
+        } catch (Exception $e) {
+            error_log("Erro ao gerar relatório de alunos: " . $e->getMessage());
+            $alunos = [];
+            $total_alunos = 0;
+            $total_ativos = 0;
+        }
+        
+        require_once BASE_PATH . '/app/views/relatorio/alunos.php';
+    }
+    
+    public function treinos() {
+        // Verificar permissões
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] === 'aluno') {
+            http_response_code(403);
+            echo "Acesso negado.";
+            return;
+        }
+        
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            // Buscar dados dos planos de treino
+            $query = "SELECT pt.ID_Plano, pt.Descricao
+                     FROM plano_treino pt
+                     ORDER BY pt.ID_Plano DESC";
+            
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $planos_treino = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Estatísticas
+            $total_planos = count($planos_treino);
+            $total_ativos = $total_planos; // Simplificado para este exemplo
+            
+        } catch (Exception $e) {
+            error_log("Erro ao gerar relatório de treinos: " . $e->getMessage());
+            $planos_treino = [];
+            $total_planos = 0;
+            $total_ativos = 0;
+        }
+        
+        require_once BASE_PATH . '/app/views/relatorio/treinos.php';
+    }
+    
+    public function financeiro() {
+        // Verificar permissões
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] === 'aluno') {
+            $title = 'Acesso Negado - Sistema Academia';
+            ob_start();
+            ?>
+            <div class="container-fluid">
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h4>Acesso Negado</h4>
+                    <p>Você não tem permissão para acessar esta página.</p>
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+            <?php
+            $content = ob_get_clean();
+            http_response_code(403);
+            require_once BASE_PATH . '/app/views/layout.php';
+            return;
+        }
+        
+        $mes_atual = $_GET['mes'] ?? date('Y-m');
+        $todos = isset($_GET['todos']) && $_GET['todos'] == '1';
+        
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            // Construir a consulta baseada no filtro
+            if ($todos) {
+                // Mostrar todos os boletos
+                $where_clause = "1=1";
+                $bind_params = [];
+            } else {
+                // Mostrar apenas o mês selecionado
+                $where_clause = "DATE_FORMAT(Dt_Vencimento, '%Y-%m') = :mes";
+                $bind_params = [':mes' => $mes_atual];
+            }
+            
+            // Resumo financeiro
+            $query = "SELECT 
+                        COUNT(*) as total_boletos,
+                        SUM(Valor) as valor_total,
+                        COUNT(CASE WHEN Dt_Pagamento IS NOT NULL THEN 1 END) as boletos_pagos,
+                        SUM(CASE WHEN Dt_Pagamento IS NOT NULL THEN Valor ELSE 0 END) as valor_recebido,
+                        COUNT(CASE WHEN Dt_Vencimento < CURDATE() AND Dt_Pagamento IS NULL THEN 1 END) as boletos_vencidos,
+                        SUM(CASE WHEN Dt_Vencimento < CURDATE() AND Dt_Pagamento IS NULL THEN Valor ELSE 0 END) as valor_vencido
+                     FROM boleto 
+                     WHERE " . $where_clause;
+            
+            $stmt = $db->prepare($query);
+            foreach ($bind_params as $param => $value) {
+                $stmt->bindValue($param, $value);
+            }
+            $stmt->execute();
+            $resumo_financeiro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Detalhes dos boletos
+            $query_detalhes = "SELECT b.ID_Pagamento, b.Valor, b.Dt_Vencimento, b.Dt_Pagamento,
+                                     a.AL_Nome, m.ID_Matricula
+                              FROM boleto b
+                              INNER JOIN matricula m ON b.ID_Matricula = m.ID_Matricula
+                              INNER JOIN aluno a ON m.ID_Matricula = a.ID_Matricula
+                              WHERE " . $where_clause . "
+                              ORDER BY b.Dt_Vencimento DESC";
+            
+            $stmt_detalhes = $db->prepare($query_detalhes);
+            foreach ($bind_params as $param => $value) {
+                $stmt_detalhes->bindValue($param, $value);
+            }
+            $stmt_detalhes->execute();
+            $detalhes_boletos = $stmt_detalhes->fetchAll(PDO::FETCH_ASSOC);
+            
+        } catch (Exception $e) {
+            error_log("Erro ao gerar relatório financeiro: " . $e->getMessage());
+            $resumo_financeiro = [
+                'total_boletos' => 0,
+                'valor_total' => 0,
+                'boletos_pagos' => 0,
+                'valor_recebido' => 0,
+                'boletos_vencidos' => 0,
+                'valor_vencido' => 0
+            ];
+            $detalhes_boletos = [];
+        }
+        
+        require_once BASE_PATH . '/app/views/relatorio/financeiro.php';
     }
 }
 ?>

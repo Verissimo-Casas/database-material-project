@@ -1,7 +1,6 @@
 <?php
-// FILE: app/views/relatorio/create.php
-$pageTitle = "Criar Relatório";
-require_once '../app/views/layout.php';
+$title = 'Criar Relatório - Sistema Academia';
+ob_start();
 ?>
 
 <div class="container-fluid">
@@ -111,4 +110,7 @@ document.getElementById('tipo_relatorio').addEventListener('change', function() 
 });
 </script>
 
-<?php require_once '../app/views/layout.php'; ?>
+<?php
+$content = ob_get_clean();
+include BASE_PATH . '/app/views/layout.php';
+?>

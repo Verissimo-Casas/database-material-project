@@ -1,10 +1,13 @@
-<?php include BASE_PATH . '/app/views/layout.php'; ?>
+<?php
+$title = 'Aulas - Sistema Academia';
+ob_start();
+?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-calendar"></i> Aulas</h2>
         <?php if ($_SESSION['user_type'] !== 'aluno'): ?>
-            <a href="<?= BASE_URL ?>/aula/create" class="btn btn-primary">
+            <a href="/aula/create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nova Aula
             </a>
         <?php endif; ?>
@@ -70,7 +73,7 @@
                                             <?php endif; ?>
                                             <td>
                                                 <?php if ($_SESSION['user_type'] !== 'aluno'): ?>
-                                                    <a href="<?= BASE_URL ?>/aula/frequencia/<?= $aula['ID_Aula'] ?>" class="btn btn-sm btn-outline-primary">
+                                                    <a href="/aula/frequencia/<?= $aula['ID_Aula'] ?>" class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-users"></i> Frequência
                                                     </a>
                                                 <?php endif; ?>
@@ -86,3 +89,8 @@
         </div>
     </div>
 </div>
+
+<?php
+$content = ob_get_clean();
+include BASE_PATH . '/app/views/layout.php';
+?>

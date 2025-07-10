@@ -8,8 +8,8 @@ class PlanoTreinoController {
     public function index() {
         // Verificar se o usuário está logado
         if (!isset($_SESSION['user_id'])) {
-            redirect('auth/login');
-            return;
+            header("Location: " . BASE_URL . "auth/login");
+            exit();
         }
         
         // Verificar permissões - apenas instrutores e admins podem ver planos
@@ -23,12 +23,10 @@ class PlanoTreinoController {
             $database = new Database();
             $db = $database->getConnection();
             
-            $query = "SELECT p.*, i.L_Nome as instrutor_nome, a.AL_Nome as aluno_nome 
+            $query = "SELECT p.*, i.L_Nome as instrutor_nome 
                      FROM plano_treino p 
                      LEFT JOIN monta m ON p.ID_Plano = m.ID_Plano 
                      LEFT JOIN instrutor i ON m.CREF_j = i.CREF
-                     LEFT JOIN segue s ON p.ID_Plano = s.ID_Plano
-                     LEFT JOIN aluno a ON s.AL_CPF = a.CPF
                      ORDER BY p.ID_Plano DESC";
             
             $stmt = $db->prepare($query);
@@ -47,8 +45,8 @@ class PlanoTreinoController {
     public function create() {
         // Verificar se o usuário está logado e tem permissão
         if (!isset($_SESSION['user_id'])) {
-            redirect('auth/login');
-            return;
+            header("Location: " . BASE_URL . "auth/login");
+            exit();
         }
         
         if ($_SESSION['user_type'] === 'aluno') {
@@ -101,30 +99,31 @@ class PlanoTreinoController {
         }
         
         $csrf_token = generateCSRFToken();
+        $error = $error ?? null;
+        $success = $success ?? null;
         render('plano_treino/create', compact('csrf_token', 'error', 'success'));
     }
     
     public function viewMyPlans() {
         // Para alunos visualizarem seus próprios planos
         if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'aluno') {
-            redirect('auth/login');
-            return;
+            header("Location: " . BASE_URL . "auth/login");
+            exit();
         }
-        
+
         try {
             $database = new Database();
             $db = $database->getConnection();
             
+            // Query corrigida - buscar planos associados ao aluno através da matrícula
+            // Como não há tabela 'segue', vamos mostrar todos os planos disponíveis para o aluno
             $query = "SELECT p.*, i.L_Nome as instrutor_nome 
                      FROM plano_treino p 
-                     INNER JOIN segue s ON p.ID_Plano = s.ID_Plano 
                      LEFT JOIN monta m ON p.ID_Plano = m.ID_Plano
                      LEFT JOIN instrutor i ON m.CREF_j = i.CREF
-                     WHERE s.AL_CPF = :cpf
                      ORDER BY p.ID_Plano DESC";
             
             $stmt = $db->prepare($query);
-            $stmt->bindParam(':cpf', $_SESSION['user_id']);
             $stmt->execute();
             $planos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
@@ -192,7 +191,55 @@ class PlanoTreinoController {
         }
         
         $csrf_token = generateCSRFToken();
-        require_once BASE_PATH . '/app/views/plano_treino/edit.php';
+        $error = $error ?? null;
+        $success = $success ?? null;
+        render('plano_treino/edit', compact('plano', 'csrf_token', 'error', 'success'));
+    }
+    
+    public function view($id = null) {
+        // Verificar se o ID foi fornecido
+        if (!$id) {
+            $_SESSION['error'] = "ID do plano não fornecido.";
+            header("Location: " . BASE_URL . "plano_treino");
+            exit();
+        }
+        
+        // Verificar se o usuário está logado
+        if (!isset($_SESSION['user_id'])) {
+            header("Location: " . BASE_URL . "auth/login");
+            exit();
+        }
+        
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            // Buscar o plano com informações do instrutor
+            $query = "SELECT p.*, i.L_Nome as instrutor_nome, i.L_Email as instrutor_email
+                     FROM plano_treino p 
+                     LEFT JOIN monta m ON p.ID_Plano = m.ID_Plano
+                     LEFT JOIN instrutor i ON m.CREF_j = i.CREF
+                     WHERE p.ID_Plano = :id";
+            
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+            $plano = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$plano) {
+                $_SESSION['error'] = "Plano de treino não encontrado.";
+                header("Location: " . BASE_URL . "plano_treino");
+                exit();
+            }
+            
+        } catch (Exception $e) {
+            error_log("Erro ao buscar plano: " . $e->getMessage());
+            $_SESSION['error'] = "Erro ao carregar plano de treino.";
+            header("Location: " . BASE_URL . "plano_treino");
+            exit();
+        }
+        
+        require_once BASE_PATH . '/app/views/plano_treino/view.php';
     }
 }
 ?>

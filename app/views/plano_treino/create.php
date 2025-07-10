@@ -1,7 +1,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-plus"></i> Novo Plano de Treino</h2>
-        <a href="<?= BASE_URL ?>/plano_treino" class="btn btn-secondary">
+        <a href="<?= BASE_URL ?>plano_treino" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Voltar
         </a>
     </div>
@@ -27,7 +27,7 @@
                     <h5 class="card-title mb-0">Informações do Plano</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="<?= BASE_URL ?>/plano_treino/create">
+                    <form method="POST" action="<?= BASE_URL ?>plano_treino/create">
                         <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                         
                         <div class="mb-3">
@@ -46,7 +46,7 @@
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="<?= BASE_URL ?>/plano_treino" class="btn btn-outline-secondary me-md-2">
+                            <a href="<?= BASE_URL ?>plano_treino" class="btn btn-outline-secondary me-md-2">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">

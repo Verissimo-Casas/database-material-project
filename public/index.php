@@ -33,7 +33,7 @@ if ($segments[0] === 'login' || $segments[0] === 'register') {
 }
 
 // Convert controller name to PascalCase for compound names
-$controllerName = str_replace('_', '', ucwords($controller, '_'));
+$controllerName = str_replace(' ', '', ucwords(str_replace('_', ' ', $controller)));
 
 // Controller file path
 $controllerFile = BASE_PATH . '/app/controllers/' . $controllerName . 'Controller.php';

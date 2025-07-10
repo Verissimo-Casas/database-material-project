@@ -20,7 +20,7 @@ ob_start();
                 <div class="d-flex justify-content-between">
                     <div>
                         <h6 class="card-title">Aulas Hoje</h6>
-                        <h3>3</h3>
+                        <h3><?php echo isset($aulasHoje) ? $aulasHoje : 0; ?></h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-calendar-day fa-2x"></i>
@@ -36,7 +36,7 @@ ob_start();
                 <div class="d-flex justify-content-between">
                     <div>
                         <h6 class="card-title">Alunos Ativos</h6>
-                        <h3>25</h3>
+                        <h3><?php echo isset($alunosAtivos) ? $alunosAtivos : 0; ?></h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-users fa-2x"></i>
@@ -52,7 +52,7 @@ ob_start();
                 <div class="d-flex justify-content-between">
                     <div>
                         <h6 class="card-title">Avaliações Pendentes</h6>
-                        <h3>8</h3>
+                        <h3><?php echo isset($avaliacoesPendentes) ? $avaliacoesPendentes : 0; ?></h3>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-clipboard-check fa-2x"></i>
@@ -72,27 +72,40 @@ ob_start();
             </div>
             <div class="card-body">
                 <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">Musculação Iniciantes</h6>
-                            <p class="mb-1">Hoje às 14:00</p>
+                    <?php if (isset($proximasAulas) && !empty($proximasAulas)): ?>
+                        <?php foreach ($proximasAulas as $aula): ?>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><?php echo htmlspecialchars($aula['Descricao']); ?></h6>
+                                    <p class="mb-1">
+                                        <?php 
+                                        $dataHora = new DateTime($aula['Dt_Hora']);
+                                        $hoje = new DateTime();
+                                        $amanha = new DateTime('+1 day');
+                                        
+                                        if ($dataHora->format('Y-m-d') == $hoje->format('Y-m-d')) {
+                                            echo 'Hoje às ' . $dataHora->format('H:i');
+                                        } elseif ($dataHora->format('Y-m-d') == $amanha->format('Y-m-d')) {
+                                            echo 'Amanhã às ' . $dataHora->format('H:i');
+                                        } else {
+                                            echo $dataHora->format('d/m/Y às H:i');
+                                        }
+                                        ?>
+                                    </p>
+                                    <?php if (!empty($aula['instrutor_nome']) && $aula['instrutor_nome'] != 'Sem instrutor'): ?>
+                                        <small class="text-muted">Instrutor: <?php echo htmlspecialchars($aula['instrutor_nome']); ?></small>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    <?php echo $aula['total_alunos'] ?? 0; ?> alunos
+                                </span>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="list-group-item text-center text-muted">
+                            <p class="mb-0">Nenhuma aula agendada</p>
                         </div>
-                        <span class="badge bg-primary rounded-pill">12 alunos</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">CrossFit</h6>
-                            <p class="mb-1">Hoje às 18:00</p>
-                        </div>
-                        <span class="badge bg-primary rounded-pill">8 alunos</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">Funcional</h6>
-                            <p class="mb-1">Amanhã às 07:00</p>
-                        </div>
-                        <span class="badge bg-primary rounded-pill">15 alunos</span>
-                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="text-center mt-3">
                     <a href="<?php echo BASE_URL; ?>aula" class="btn btn-sm btn-outline-primary">Ver Todas</a>
@@ -118,21 +131,27 @@ ob_start();
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Maria Santos</td>
-                                <td>07/07/2025</td>
-                                <td>22.5</td>
-                            </tr>
-                            <tr>
-                                <td>João Silva</td>
-                                <td>06/07/2025</td>
-                                <td>24.1</td>
-                            </tr>
-                            <tr>
-                                <td>Ana Costa</td>
-                                <td>05/07/2025</td>
-                                <td>21.8</td>
-                            </tr>
+                            <?php if (isset($avaliacoesRecentes) && !empty($avaliacoesRecentes)): ?>
+                                <?php foreach ($avaliacoesRecentes as $avaliacao): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($avaliacao['aluno_nome'] ?? 'N/A'); ?></td>
+                                        <td>
+                                            <?php 
+                                            if ($avaliacao['Data_Av']) {
+                                                echo date('d/m/Y', strtotime($avaliacao['Data_Av']));
+                                            } else {
+                                                echo 'N/A';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td><?php echo number_format($avaliacao['IMC'], 1); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Nenhuma avaliação recente</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -160,7 +179,7 @@ ob_start();
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="<?php echo BASE_URL; ?>plano/create" class="btn btn-outline-success w-100">
+                        <a href="<?php echo BASE_URL; ?>plano_treino/create" class="btn btn-outline-success w-100">
                             <i class="fas fa-dumbbell"></i><br>
                             Novo Treino
                         </a>

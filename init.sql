@@ -42,7 +42,7 @@ CREATE TABLE matricula (
 
 -- Tabela plano_treino
 CREATE TABLE plano_treino (
-    ID_Plano INT(11) NOT NULL PRIMARY KEY,
+    ID_Plano INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     Descricao VARCHAR(300) NULL
 ) ENGINE=InnoDB;
 
@@ -55,7 +55,7 @@ CREATE TABLE aula (
 
 -- Tabela avaliacao_fisica
 CREATE TABLE avaliacao_fisica (
-    ID_Avaliacao INT(11) NOT NULL PRIMARY KEY,
+    ID_Avaliacao INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     Data_Av DATE NOT NULL,
     Peso DECIMAL(5,2) NOT NULL,
     Altura DECIMAL(5,2) NOT NULL,

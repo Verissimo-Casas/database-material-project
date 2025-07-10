@@ -3,6 +3,8 @@
 
 require_once BASE_PATH . '/app/models/Matricula.php';
 require_once BASE_PATH . '/app/models/Boleto.php';
+require_once BASE_PATH . '/app/models/Aula.php';
+require_once BASE_PATH . '/app/models/Avaliacao.php';
 
 class DashboardController {
     
@@ -44,7 +46,19 @@ class DashboardController {
     }
     
     private function instrutorIndex() {
-        // Instrutor dashboard data
+        // Get real data for instructor dashboard
+        $aulaModel = new Aula();
+        $avaliacaoModel = new Avaliacao();
+        
+        // Get upcoming classes (all classes, not filtered by instructor yet due to relationship complexity)
+        $proximasAulas = $aulaModel->getUpcoming(3);
+        $aulasHoje = $aulaModel->getTodayClasses();
+        
+        // Get recent evaluations
+        $avaliacoesRecentes = $avaliacaoModel->getRecent(3);
+        $avaliacoesPendentes = $avaliacaoModel->getPendingCount();
+        $alunosAtivos = $avaliacaoModel->getActiveStudentsCount();
+        
         include BASE_PATH . '/app/views/dashboard/instrutor.php';
     }
     

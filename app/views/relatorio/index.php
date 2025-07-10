@@ -1,7 +1,7 @@
 <?php
 // FILE: app/views/relatorio/index.php
-$pageTitle = "Relatórios";
-require_once '../app/views/layout.php';
+$title = 'Relatórios - Sistema Academia';
+ob_start();
 ?>
 
 <div class="container-fluid">
@@ -81,10 +81,10 @@ require_once '../app/views/layout.php';
                                     <td>Admin Sistema</td>
                                     <td><span class="badge bg-success">Concluído</span></td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="alert('Funcionalidade de download será implementada em breve!')">
                                             <i class="fas fa-download"></i> Download
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                                        </button>
+                                        <a href="/relatorio/alunos" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-eye"></i> Visualizar
                                         </a>
                                     </td>
@@ -96,10 +96,10 @@ require_once '../app/views/layout.php';
                                     <td>Instrutor João</td>
                                     <td><span class="badge bg-success">Concluído</span></td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="alert('Funcionalidade de download será implementada em breve!')">
                                             <i class="fas fa-download"></i> Download
-                                        </a>
-                                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                                        </button>
+                                        <a href="/relatorio/treinos" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-eye"></i> Visualizar
                                         </a>
                                     </td>
@@ -111,8 +111,11 @@ require_once '../app/views/layout.php';
                                     <td>Admin Sistema</td>
                                     <td><span class="badge bg-warning">Processando</span></td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-outline-secondary disabled">
+                                        <button class="btn btn-sm btn-outline-secondary disabled" disabled>
                                             <i class="fas fa-clock"></i> Aguardando
+                                        </button>
+                                        <a href="/relatorio/financeiro" class="btn btn-sm btn-outline-primary" title="Ver relatório financeiro atual">
+                                            <i class="fas fa-eye"></i> Ver Atual
                                         </a>
                                     </td>
                                 </tr>
@@ -154,3 +157,8 @@ require_once '../app/views/layout.php';
     font-size: 0.875rem;
 }
 </style>
+
+<?php
+$content = ob_get_clean();
+include BASE_PATH . '/app/views/layout.php';
+?>

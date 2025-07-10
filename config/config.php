@@ -7,7 +7,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Define constants
-define('BASE_PATH', dirname(dirname(__FILE__)));
+define('BASE_PATH', realpath(dirname(dirname(__FILE__))));
 define('BASE_URL', 'http://localhost:8080/');
 
 // Include database configuration

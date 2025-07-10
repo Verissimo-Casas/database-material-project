@@ -2,7 +2,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-dumbbell"></i> Planos de Treino</h2>
         <?php if ($_SESSION['user_type'] !== 'aluno'): ?>
-            <a href="<?= BASE_URL ?>/plano_treino/create" class="btn btn-primary">
+            <a href="<?= BASE_URL ?>plano_treino/create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Novo Plano
             </a>
         <?php endif; ?>
@@ -73,7 +73,7 @@
                                             </td>
                                             <?php if ($_SESSION['user_type'] !== 'aluno'): ?>
                                                 <td><?= htmlspecialchars($plano['instrutor_nome'] ?? 'Não definido') ?></td>
-                                                <td><?= htmlspecialchars($plano['aluno_nome'] ?? 'Não atribuído') ?></td>
+                                                <td><?= 'Não atribuído' ?></td>
                                             <?php else: ?>
                                                 <td><?= htmlspecialchars($plano['instrutor_nome'] ?? 'Não definido') ?></td>
                                             <?php endif; ?>
@@ -83,42 +83,13 @@
                                                         <i class="fas fa-eye"></i>
                                                     </button>
                                                     <?php if ($_SESSION['user_type'] !== 'aluno'): ?>
-                                                        <a href="<?= BASE_URL ?>/plano_treino/edit/<?= $plano['ID_Plano'] ?>" class="btn btn-outline-warning">
+                                                        <a href="<?= BASE_URL ?>plano_treino/edit/<?= $plano['ID_Plano'] ?>" class="btn btn-outline-warning">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                     <?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>
-
-                                        <!-- Modal para visualizar descrição completa -->
-                                        <div class="modal fade" id="viewModal<?= $plano['ID_Plano'] ?>" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Plano de Treino #<?= $plano['ID_Plano'] ?></h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <h6>Descrição:</h6>
-                                                        <p><?= nl2br(htmlspecialchars($plano['Descricao'])) ?></p>
-                                                        
-                                                        <?php if ($plano['instrutor_nome']): ?>
-                                                            <h6>Instrutor:</h6>
-                                                            <p><?= htmlspecialchars($plano['instrutor_nome']) ?></p>
-                                                        <?php endif; ?>
-                                                        
-                                                        <?php if ($_SESSION['user_type'] !== 'aluno' && $plano['aluno_nome']): ?>
-                                                            <h6>Aluno:</h6>
-                                                            <p><?= htmlspecialchars($plano['aluno_nome']) ?></p>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -129,3 +100,34 @@
         </div>
     </div>
 </div>
+
+<!-- Modals para visualizar descrição completa (fora da tabela) -->
+<?php if (!empty($planos)): ?>
+    <?php foreach ($planos as $plano): ?>
+        <div class="modal fade" id="viewModal<?= $plano['ID_Plano'] ?>" tabindex="-1" aria-labelledby="viewModal<?= $plano['ID_Plano'] ?>Label" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="viewModal<?= $plano['ID_Plano'] ?>Label">Plano de Treino #<?= $plano['ID_Plano'] ?></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>Descrição:</h6>
+                        <div class="p-3 bg-light rounded">
+                            <?= nl2br(htmlspecialchars($plano['Descricao'])) ?>
+                        </div>
+                        
+                        <?php if ($plano['instrutor_nome']): ?>
+                            <hr>
+                            <h6>Instrutor:</h6>
+                            <p class="mb-0"><?= htmlspecialchars($plano['instrutor_nome']) ?></p>
+                        <?php endif; ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>

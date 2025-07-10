@@ -1,8 +1,6 @@
 <?php
 // FILE: app/controllers/AvaliacaoController.php
 
-require_once BASE_PATH . '/app/models/User.php';
-
 class AvaliacaoController {
     
     public function index() {
@@ -65,61 +63,105 @@ class AvaliacaoController {
         }
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!validateCSRFToken($_POST['csrf_token'])) {
+            if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
                 $error = "Token CSRF inválido.";
             } else {
-                $data_av = sanitizeInput($_POST['data_av']);
-                $peso = sanitizeInput($_POST['peso']);
-                $altura = sanitizeInput($_POST['altura']);
-                $cpf_aluno = sanitizeInput($_POST['cpf_aluno']);
-                $relatorio = sanitizeInput($_POST['relatorio_avaliacao']);
+                $data_av = sanitizeInput($_POST['data_av'] ?? '');
+                $peso = sanitizeInput($_POST['peso'] ?? '');
+                $altura = sanitizeInput($_POST['altura'] ?? '');
+                $cpf_aluno = sanitizeInput($_POST['cpf_aluno'] ?? '');
+                $relatorio = sanitizeInput($_POST['relatorio_avaliacao'] ?? '');
                 
                 if (empty($data_av) || empty($peso) || empty($altura) || empty($cpf_aluno)) {
                     $error = "Todos os campos obrigatórios devem ser preenchidos.";
+                } elseif (!is_numeric($peso) || !is_numeric($altura) || $peso <= 0 || $altura <= 0) {
+                    $error = "Peso e altura devem ser valores numéricos positivos.";
                 } else {
                     // Calcular IMC
-                    $imc = $peso / ($altura * $altura);
+                    $peso_num = floatval($peso);
+                    $altura_num = floatval($altura);
+                    $imc = $peso_num / ($altura_num * $altura_num);
                     
                     try {
                         $database = new Database();
                         $db = $database->getConnection();
                         
-                        // Inserir nova avaliação
-                        $query = "INSERT INTO avaliacao_fisica (Data_Av, Peso, Altura, IMC) 
-                                 VALUES (:data_av, :peso, :altura, :imc)";
-                        $stmt = $db->prepare($query);
-                        $stmt->bindParam(':data_av', $data_av);
-                        $stmt->bindParam(':peso', $peso);
-                        $stmt->bindParam(':altura', $altura);
-                        $stmt->bindParam(':imc', $imc);
+                        if (!$db) {
+                            throw new Exception("Erro na conexão com o banco de dados");
+                        }
                         
-                        if ($stmt->execute()) {
-                            $avaliacao_id = $db->lastInsertId();
-                            
-                            // Associar ao instrutor
-                            $query_constroi = "INSERT INTO constroi (CREF_j, ID_Avaliacao) VALUES (:cref, :av_id)";
-                            $stmt_constroi = $db->prepare($query_constroi);
-                            $stmt_constroi->bindParam(':cref', $_SESSION['user_id']);
-                            $stmt_constroi->bindParam(':av_id', $avaliacao_id);
-                            $stmt_constroi->execute();
-                            
-                            // Associar ao aluno
-                            $query_realiza = "INSERT INTO realiza (ID_Avaliacao, AL_CPF, Relatorio_Avaliacao) 
-                                            VALUES (:av_id, :cpf, :relatorio)";
-                            $stmt_realiza = $db->prepare($query_realiza);
-                            $stmt_realiza->bindParam(':av_id', $avaliacao_id);
-                            $stmt_realiza->bindParam(':cpf', $cpf_aluno);
-                            $stmt_realiza->bindParam(':relatorio', $relatorio);
-                            $stmt_realiza->execute();
-                            
-                            $success = "Avaliação física criada com sucesso! IMC calculado: " . number_format($imc, 2);
+                        // Verificar se o aluno existe
+                        $query_check = "SELECT CPF FROM aluno WHERE CPF = :cpf";
+                        $stmt_check = $db->prepare($query_check);
+                        $stmt_check->bindParam(':cpf', $cpf_aluno);
+                        $stmt_check->execute();
+                        
+                        if (!$stmt_check->fetch()) {
+                            $error = "Aluno não encontrado.";
                         } else {
-                            $error = "Erro ao criar avaliação física.";
+                            // Try inserting with AUTO_INCREMENT first (if database was fixed)
+                            try {
+                                $query = "INSERT INTO avaliacao_fisica (Data_Av, Peso, Altura, IMC) 
+                                         VALUES (:data_av, :peso, :altura, :imc)";
+                                $stmt = $db->prepare($query);
+                                $stmt->bindParam(':data_av', $data_av);
+                                $stmt->bindParam(':peso', $peso_num);
+                                $stmt->bindParam(':altura', $altura_num);
+                                $stmt->bindParam(':imc', $imc);
+                                
+                                if ($stmt->execute()) {
+                                    $avaliacao_id = $db->lastInsertId();
+                                } else {
+                                    throw new Exception("Insert failed");
+                                }
+                            } catch (Exception $e) {
+                                // Fallback: manually generate ID if AUTO_INCREMENT is not configured
+                                $query_max_id = "SELECT COALESCE(MAX(ID_Avaliacao), 0) + 1 as next_id FROM avaliacao_fisica";
+                                $stmt_max = $db->prepare($query_max_id);
+                                $stmt_max->execute();
+                                $next_id_result = $stmt_max->fetch(PDO::FETCH_ASSOC);
+                                $avaliacao_id = $next_id_result['next_id'];
+                                
+                                $query = "INSERT INTO avaliacao_fisica (ID_Avaliacao, Data_Av, Peso, Altura, IMC) 
+                                         VALUES (:id_avaliacao, :data_av, :peso, :altura, :imc)";
+                                $stmt = $db->prepare($query);
+                                $stmt->bindParam(':id_avaliacao', $avaliacao_id);
+                                $stmt->bindParam(':data_av', $data_av);
+                                $stmt->bindParam(':peso', $peso_num);
+                                $stmt->bindParam(':altura', $altura_num);
+                                $stmt->bindParam(':imc', $imc);
+                                
+                                if (!$stmt->execute()) {
+                                    throw new Exception("Failed to insert with manual ID");
+                                }
+                            }
+                            
+                            if ($avaliacao_id) {
+                                // Associar ao instrutor
+                                $query_constroi = "INSERT INTO constroi (CREF_j, ID_Avaliacao) VALUES (:cref, :av_id)";
+                                $stmt_constroi = $db->prepare($query_constroi);
+                                $stmt_constroi->bindParam(':cref', $_SESSION['user_id']);
+                                $stmt_constroi->bindParam(':av_id', $avaliacao_id);
+                                $stmt_constroi->execute();
+                                
+                                // Associar ao aluno
+                                $query_realiza = "INSERT INTO realiza (ID_Avaliacao, AL_CPF, Relatorio_Avaliacao) 
+                                                VALUES (:av_id, :cpf, :relatorio)";
+                                $stmt_realiza = $db->prepare($query_realiza);
+                                $stmt_realiza->bindParam(':av_id', $avaliacao_id);
+                                $stmt_realiza->bindParam(':cpf', $cpf_aluno);
+                                $stmt_realiza->bindParam(':relatorio', $relatorio);
+                                $stmt_realiza->execute();
+                                
+                                $success = "Avaliação física criada com sucesso! IMC calculado: " . number_format($imc, 2);
+                            } else {
+                                $error = "Erro ao criar avaliação física.";
+                            }
                         }
                         
                     } catch (Exception $e) {
                         error_log("Erro ao criar avaliação: " . $e->getMessage());
-                        $error = "Erro interno do servidor.";
+                        $error = "Erro interno do servidor: " . $e->getMessage();
                     }
                 }
             }
@@ -130,14 +172,20 @@ class AvaliacaoController {
             $database = new Database();
             $db = $database->getConnection();
             
-            $query_alunos = "SELECT CPF, AL_Nome FROM aluno ORDER BY AL_Nome";
-            $stmt_alunos = $db->prepare($query_alunos);
-            $stmt_alunos->execute();
-            $alunos = $stmt_alunos->fetchAll(PDO::FETCH_ASSOC);
+            if ($db) {
+                $query_alunos = "SELECT CPF, AL_Nome FROM aluno ORDER BY AL_Nome";
+                $stmt_alunos = $db->prepare($query_alunos);
+                $stmt_alunos->execute();
+                $alunos = $stmt_alunos->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                $alunos = [];
+                $error = ($error ?? '') . " Erro na conexão com o banco de dados.";
+            }
             
         } catch (Exception $e) {
             error_log("Erro ao buscar alunos: " . $e->getMessage());
             $alunos = [];
+            $error = ($error ?? '') . " Erro ao carregar lista de alunos.";
         }
         
         $csrf_token = generateCSRFToken();
@@ -161,7 +209,7 @@ class AvaliacaoController {
             $database = new Database();
             $db = $database->getConnection();
             
-            $query = "SELECT av.*, i.L_Nome as instrutor_nome, a.AL_Nome as aluno_nome, r.Relatorio_Avaliacao 
+            $query = "SELECT av.*, i.L_Nome as instrutor_nome, a.AL_Nome as aluno_nome, a.CPF as AL_CPF, r.Relatorio_Avaliacao 
                      FROM avaliacao_fisica av 
                      LEFT JOIN constroi c ON av.ID_Avaliacao = c.ID_Avaliacao 
                      LEFT JOIN instrutor i ON c.CREF_j = i.CREF

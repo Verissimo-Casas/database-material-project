@@ -1,7 +1,7 @@
 <?php
 // FILE: app/views/aula/create.php
-$pageTitle = "Nova Aula";
-require_once '../app/views/layout.php';
+$title = "Nova Aula - Sistema Academia";
+ob_start();
 ?>
 
 <div class="container-fluid">
@@ -21,7 +21,24 @@ require_once '../app/views/layout.php';
                     </h5>
                 </div>
                 <div class="card-body">
+                    <?php if (isset($_SESSION['error'])): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> <?php echo htmlspecialchars($_SESSION['error']); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <?php unset($_SESSION['error']); ?>
+                    <?php endif; ?>
+
+                    <?php if (isset($_SESSION['success'])): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['success']); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <?php unset($_SESSION['success']); ?>
+                    <?php endif; ?>
+
                     <form id="aulaForm" method="POST" action="/aula/store">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token ?? ''); ?>">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -74,9 +91,15 @@ require_once '../app/views/layout.php';
                                     <label for="instrutor" class="form-label">Instrutor *</label>
                                     <select class="form-control" id="instrutor" name="instrutor" required>
                                         <option value="">Selecione o instrutor</option>
-                                        <option value="1">João Silva (CREF: 001234)</option>
-                                        <option value="2">Maria Santos (CREF: 005678)</option>
-                                        <option value="3">Carlos Oliveira (CREF: 009012)</option>
+                                        <?php if (!empty($instrutores)): ?>
+                                            <?php foreach ($instrutores as $instrutor): ?>
+                                                <option value="<?php echo htmlspecialchars($instrutor['CREF']); ?>">
+                                                    <?php echo htmlspecialchars($instrutor['L_Nome'] . ' (CREF: ' . $instrutor['CREF'] . ')'); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <option value="">Nenhum instrutor cadastrado</option>
+                                        <?php endif; ?>
                                     </select>
                                 </div>
                             </div>
@@ -227,3 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 500;
 }
 </style>
+
+<?php
+$content = ob_get_clean();
+include BASE_PATH . '/app/views/layout.php';
+?>

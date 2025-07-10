@@ -1,10 +1,13 @@
-<?php include BASE_PATH . '/app/views/layout.php'; ?>
+<?php
+$title = 'Avaliações Físicas - Sistema Academia';
+ob_start();
+?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-heartbeat"></i> Avaliações Físicas</h2>
         <?php if ($_SESSION['user_type'] !== 'aluno'): ?>
-            <a href="<?= BASE_URL ?>/avaliacao/create" class="btn btn-primary">
+            <a href="/avaliacao/create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nova Avaliação
             </a>
         <?php endif; ?>
@@ -66,7 +69,7 @@
                                             </td>
                                             <td><?= htmlspecialchars($avaliacao['instrutor_nome'] ?? 'Não definido') ?></td>
                                             <td>
-                                                <a href="<?= BASE_URL ?>/avaliacao/view/<?= $avaliacao['ID_Avaliacao'] ?>" class="btn btn-sm btn-outline-info">
+                                                <a href="/avaliacao/view/<?= $avaliacao['ID_Avaliacao'] ?>" class="btn btn-sm btn-outline-info">
                                                     <i class="fas fa-eye"></i> Ver
                                                 </a>
                                             </td>
@@ -81,3 +84,8 @@
         </div>
     </div>
 </div>
+
+<?php
+$content = ob_get_clean();
+include BASE_PATH . '/app/views/layout.php';
+?>

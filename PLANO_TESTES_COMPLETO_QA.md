@@ -1,5 +1,7 @@
 # PLANO DE TESTES ABRANGENTE - SISTEMA DE GESTÃO DE ACADEMIA (SGF)
 
+
+
 ## 🎯 RESUMO EXECUTIVO
 
 **QA Sênior:** Engenheiro de Garantia de Qualidade  

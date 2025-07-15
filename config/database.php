@@ -33,4 +33,20 @@ class Database {
         return $this->conn;
     }
 }
+
+// Helper function to get database configuration for backup
+function getDatabaseConfig() {
+    return [
+        'host' => (file_exists('/.dockerenv') || gethostbyname('db') !== 'db') ? 'db' : 'localhost',
+        'database' => 'academiabd',
+        'user' => 'academia_user',
+        'password' => 'academia_pass'
+    ];
+}
+
+// Helper function to get database connection
+function getConnection() {
+    $database = new Database();
+    return $database->getConnection();
+}
 ?>

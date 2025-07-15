@@ -1,6 +1,8 @@
 <?php
 // FILE: app/controllers/AvaliacaoController.php
 
+require_once BASE_PATH . '/app/models/Notification.php';
+
 class AvaliacaoController {
     
     public function index() {
@@ -153,7 +155,16 @@ class AvaliacaoController {
                                 $stmt_realiza->bindParam(':relatorio', $relatorio);
                                 $stmt_realiza->execute();
                                 
-                                $success = "Avaliação física criada com sucesso! IMC calculado: " . number_format($imc, 2);
+                                // Send notification to the student
+                                try {
+                                    $notificationModel = new Notification();
+                                    $notificationModel->createEvaluationNotification($avaliacao_id, $cpf_aluno, $_SESSION['user_id']);
+                                } catch (Exception $e) {
+                                    error_log("Erro ao enviar notificação: " . $e->getMessage());
+                                    // Don't show error to user since evaluation was created successfully
+                                }
+                                
+                                $success = "Avaliação física criada com sucesso! IMC calculado: " . number_format($imc, 2) . " - Notificação enviada ao aluno.";
                             } else {
                                 $error = "Erro ao criar avaliação física.";
                             }

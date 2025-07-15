@@ -115,11 +115,36 @@ ob_start();
                             Pagamentos
                         </a>
                     </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="<?php echo BASE_URL; ?>notification" class="btn btn-outline-danger w-100 position-relative">
+                            <i class="fas fa-bell"></i><br>
+                            Notificações
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                  id="dashboard-notification-count" style="display: none;">
+                                0
+                            </span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Update notification count on dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('<?php echo BASE_URL; ?>notification/getUnreadCount')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById('dashboard-notification-count');
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'block';
+            }
+        })
+        .catch(error => console.error('Error fetching notification count:', error));
+});
 
 <?php
 $content = ob_get_clean();

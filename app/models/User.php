@@ -12,6 +12,12 @@ class User {
     public function authenticate($email, $password) {
         error_log("Authenticating user with email: " . $email);
         
+        // Check if database connection is available
+        if (!$this->conn) {
+            error_log("Database connection is null in User::authenticate");
+            return false;
+        }
+        
         // Try aluno table first
         $query = "SELECT CPF as id, AL_Nome as nome, AL_Email as email, AL_Senha as senha, 
                          ID_Matricula, 'aluno' as tipo 

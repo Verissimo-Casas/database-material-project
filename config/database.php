@@ -10,22 +10,33 @@ class Database {
 
     public function __construct() {
         // Detect if running in Docker container or host
-        $this->host = (file_exists('/.dockerenv') || gethostbyname('db') !== 'db') ? 'db' : 'localhost';
+        if (file_exists('/.dockerenv')) {
+            $this->host = 'db';
+        } else {
+            $this->host = 'localhost';
+        }
     }
 
     public function getConnection() {
         $this->conn = null;
 
         try {
+            $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->db_name;
+            error_log("Attempting to connect to database with DSN: " . $dsn);
+            
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                $dsn,
                 $this->username,
-                $this->password
+                $this->password,
+                array(PDO::ATTR_TIMEOUT => 30)
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->exec("set names utf8");
+            
+            error_log("Database connection successful");
         } catch(PDOException $exception) {
             error_log("Database connection error: " . $exception->getMessage());
+            error_log("Host: " . $this->host . ", Database: " . $this->db_name . ", User: " . $this->username);
             // Return null instead of echoing error to avoid breaking API responses
             return null;
         }

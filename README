@@ -96,7 +96,6 @@ sistema-academia/
 - **Autorização**: Controle de acesso baseado em perfis de usuário
 - **CSRF Protection**: Tokens CSRF em todos os formulários
 - **SQL Injection**: Uso de Prepared Statements (PDO)
-- **Sanitização**: Validação e sanitização de todas as entradas
 - **Sessões**: Controle seguro de sessões PHP
 
 ## 💾 Banco de Dados
@@ -172,22 +171,6 @@ sudo chmod -R 755 .
 ### Container não inicia
 1. Verifique os logs: `docker-compose logs app`
 2. Reconstrua a imagem: `docker-compose build --no-cache`
-
-
-
-
-## ✅ Status do Projeto
-
-- [x] Estrutura Docker
-- [x] Autenticação e autorização
-- [x] Gestão de matrículas
-- [x] Sistema de pagamentos
-- [x] Dashboard responsivo
-- [x] Segurança implementada
-- [ ] Relatórios avançados
-- [ ] API REST
-- [ ] Notificações por email
-- [ ] Backup automático aprimorado
 
 ---
 
